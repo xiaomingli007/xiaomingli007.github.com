@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Christmas iMusic (pretty cool video)
-date:   2010-12-18 12:14:09
+date:	2010-12-18 12:14:09
 tags:
 - general
 - technology
