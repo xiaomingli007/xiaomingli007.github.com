@@ -1,8 +1,8 @@
 name: Lee's Blog
 pygments: true
-safe: true
 port: 4000
 markdown: rdiscount
+safe: false
 paginate: 5
 paginate_path: "page:num"
 url: http://xiaomingli007.github.com
