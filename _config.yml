@@ -5,6 +5,7 @@ markdown: rdiscount
 safe: false
 paginate: 5
 paginate_path: "page:num"
+timezone: UTC+8
 url: http://xiaomingli007.github.com
 description: 自己使用Jekyll搭建的托管在github上的个人技术博客
 
