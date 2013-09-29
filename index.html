@@ -1,0 +1,31 @@
+---
+layout: default
+title: Lee's Blog
+---
+
+{% for post in paginator.posts %}
+
+<div class="post">
+	<h3><a href="{{ post.url }}">{{ post.title }}</a></h3>
+	<p class="post-meta">{{ post.date | date: "%B %d, %Y at %H:%M" }}</p>
+	<p class="post-content">{{ post.summary }}...</p>
+	
+
+</div>
+
+{% endfor %}
+<nav id="pagination">
+    {% if paginator.previous_page %}
+        {% if paginator.previous_page == 1 %}
+        <a href="/" title="Previous Page">&laquo; 上一页</a>
+        {% else %}
+        <a href="/page{{paginator.previous_page }}/" title="Previous Page">&laquo; 上一页</a>
+        {% endif %}
+    {% endif %}
+        <span>页面: {{ paginator.page }} of {{paginator.total_pages }}</span>
+        {% if paginator.next_page %} 
+    <a href="/page{{ paginator.next_page }}/" title="Next Page">下一页 &raquo;</a>
+    {% endif %} 
+  </nav>
+
+
