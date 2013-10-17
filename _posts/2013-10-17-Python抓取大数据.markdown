@@ -1,0 +1,96 @@
+---
+layout: post
+title: Python抓取大数据
+date: 2013-10-17 09:31:50 +0800
+summary: 最近参加了[中国第一届大数据技术创新大赛][1]，在获取数据过程中，总结出人是不靠谱的，于是写了一个简单的python脚本抓取数据。
+---
+最近参加了[中国第一届大数据技术创新大赛][1]，在获取数据过程中，总结出人是不靠谱的，于是写了一个简单的python脚本抓取数据。我们组的选题是#移动网络寻呼黑洞
+	其数据文件格式如下：
+	
+	ftbBssRanSession.out.20121210100121001.BB71-A7A9-C501-4E7F9A60-D01A021393A4.dat	27-Sep-2013 09:53	104M	 
+	ftbBssRanSession.out.20121210100221000.DA22-A120-208F-4A5F9C84-78B674FDF813.dat	27-Sep-2013 10:20	104M	 
+	ftbBssRanSession.out.20121210100321003.DE49-E109-4B5C-431BB5F5-19307159A921.dat	27-Sep-2013 10:16	104M	 
+	ftbBssRanSession.out.20121210100421002.6D28-4695-F38C-4F58A48B-D00E87282AE9.dat	27-Sep-2013 10:05	103M	 
+	ftbBssRanSession.out.20121210100521001.7DA9-AD57-FD24-48E0BED4-4EEDE38D5C0D.dat	27-Sep-2013 10:13	102M	 
+	ftbBssRanSession.out.20121210100621000.459C-87FB-1722-43E0851D-7ED603B69F88.dat	27-Sep-2013 10:03	104M	 
+	......
+	共109个切片数据需要下载，每个大约7分钟。如果人工下载的话，需要很长很长一段时间。在我手动重复点击另存为按钮后，发现经常会漏下某个文件。于是决定写个Python脚本自动下载。
+首先观察下，提供数据下载的网站(http://10.120.68.1/CCF_contest/Signaling/20121210/10/，需要VPN才能访问)源码
+	<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+	<html>
+	 <head>
+	  <title>Index of /CCF_contest/Signaling/20121210/10</title>
+	 </head>
+	 <body>
+	<h1>Index of /CCF_contest/Signaling/20121210/10</h1>
+	<table><tr><th><img src="/icons/blank.gif" alt="[ICO]"></th><th><a href="?C=N;O=D">Name</a></th><th><a href="?C=M;O=A">Last modified</a></th><th><a href="?C=S;O=A">Size</a></th><th><a href="?C=D;O=A">Description</a></th></tr><tr><th colspan="5"><hr></th></tr>
+	<tr><td valign="top"><img src="/icons/back.gif" alt="[DIR]"></td><td><a href="/CCF_contest/Signaling/20121210/">Parent Directory</a></td><td>&nbsp;</td><td align="right">  - </td><td>&nbsp;</td></tr>
+	<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="ftbBssRanSession.out.20121210100021002.110B-5A54-C71E-43B6B0A9-E2F3C1324E37.dat">ftbBssRanSession.out.20121210100021002.110B-5A54-C71E-43B6B0A9-E2F3C1324E37.dat</a></td><td align="right">27-Sep-2013 09:56  </td><td align="right">1.7M</td><td>&nbsp;</td></tr>
+	<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="ftbBssRanSession.out.20121210100121001.BB71-A7A9-C501-4E7F9A60-D01A021393A4.dat">ftbBssRanSession.out.20121210100121001.BB71-A7A9-C501-4E7F9A60-D01A021393A4.dat</a></td><td align="right">27-Sep-2013 09:53  </td><td align="right">104M</td><td>&nbsp;</td></tr>
+	<tr><td valign="top"><img src="/icons/unknown.gif" alt="[   ]"></td><td><a href="ftbBssRanSession.out.20121210100221000.DA22-A120-208F-4A5F9C84-78B674FDF813.dat">ftbBssRanSession.out.20121210100221000.DA22-A120-208F-4A5F9C84-78B674FDF813.dat</a></td><td align="right">27-Sep-2013 10:20  </td><td align="right">104M</td><td>&nbsp;</td></tr>
+	.........
+	<tr><th colspan="5"><hr></th></tr>
+	</table>
+	<address>Apache/2.2.15 (CentOS) Server at 10.120.68.1 Port 80</address>
+	</body></html>
+我们的url=http://10.120.68.1/CCF_contest/Signaling/20121210/10/，要访问每个数据文件，就得得到每个数据文件的名称，也就是a标签的href的值。所以，程序的基本思想就是遍历所有#合法的a标签#，获取其href值，下载数据。
+于是，得到如下脚本：
+	import os  
+	import urllib2
+	import urllib
+	import HTMLParser
+	url = 'http://10.120.68.1/CCF_contest/Signaling/20121210/10/'
+	disPath = 'f:\\competition\\'
+
+	class MyParser(HTMLParser.HTMLParser):
+		filelist = []
+		def __init__(self):
+			HTMLParser.HTMLParser.__init__(self)
+		def handle_starttag(self, tag, attrs):
+			if tag == 'a':
+				for name,value in attrs:
+					if name =='href':
+						#print value
+						if len(value) > 40:
+							self.filelist.append(value)
+							
+						else :
+							print "invaild value:%s"%value
+		def getfileslist(self):
+			return self.filelist
+											
+	if __name__ == '__main__':
+		mp = MyParser()	
+		web = urllib2.urlopen(url)
+		for content in web.readlines():
+			mp.feed(content)
+		flist = mp.getfileslist()
+		for file in flist:
+			if not os.path.exists(disPath+file):
+				my_url= url+file
+				output = disPath + file
+				
+				urllib.urlretrieve(my_url,output)
+				print "end a file:%s"%file
+			
+			#else:
+			#	print "%s is exists"%file
+			
+	
+###[Python脚本源码][2]	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1]:http://www.bigcloudsys.com/ccf2013/index.html
+[2]:https://github.com/xiaomingli007/python-for-codeforces/blob/master/download.py
